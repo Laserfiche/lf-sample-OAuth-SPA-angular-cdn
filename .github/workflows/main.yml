@@ -1,4 +1,4 @@
-name: lf-sample-OAuth-SPA-angular-CI
+name: lf-sample-OAuth-SPA-angular-cdn-CI
 
 on:
   push:
