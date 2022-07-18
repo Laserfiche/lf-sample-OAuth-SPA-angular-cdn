@@ -35,7 +35,7 @@
     "@angular-devkit/build-angular": "^13.3.8",
     "@angular/cli": "^13.3.8",
     "@angular/compiler-cli": "^13.3.11",
-    "@laserfiche/types-lf-ui-components": "^13.0.0--preview-2630978749",
+    "@laserfiche/types-lf-ui-components": "^13.0.0",
     "@types/jasmine": "^3.8.0",
     "@types/node": "^12.11.1",
     "jasmine-core": "^3.8.0",
