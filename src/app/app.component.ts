@@ -238,6 +238,7 @@ export class AppComponent implements AfterViewInit {
 
   isLoggedIn(): boolean {
     return this.loginComponent?.nativeElement?.state === LoginState.LoggedIn;
+    // TODO: how many times will this get called
   }
 
   async onSelectFolder() {
