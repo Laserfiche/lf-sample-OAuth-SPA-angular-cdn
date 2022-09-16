@@ -26,7 +26,7 @@
     "@angular/router": "^13.3.11",
     "@laserfiche/lf-js-utils": "^4.0.3",
     "@laserfiche/lf-repository-api-client": "^1.0.12",
-    "@laserfiche/lf-ui-components-services": "^13.0.0--preview-3025846556",
+    "@laserfiche/lf-ui-components-services": "^13.0.0",
     "@laserfiche/types-lf-ui-components": "^13.1.1",
     "rxjs": "^6.6.0",
     "tslib": "^2.2.0",
