@@ -40,7 +40,6 @@ export class AppComponent implements AfterViewInit {
   REDIRECT_URI: string = 'REPLACE_WITH_YOUR_REDIRECT_URI'; // i.e http://localhost:3000, https://serverName/lf-sample/index.html
   CLIENT_ID: string = 'REPLACE_WITH_YOUR_CLIENT_ID';
   HOST_NAME: string = 'laserfiche.com'; // only update this if you are using a different region or environment (i.e. laserfiche.ca, eu.laserfiche.com)
-  REGIONAL_DOMAIN: string = 'laserfiche.com' // only update this if you are using a different region or environment
 
   // repository client that will be used to connect to the LF API
   private repoClient?: IRepositoryApiClientExInternal;
@@ -121,14 +120,14 @@ export class AppComponent implements AfterViewInit {
       }
     }
     return false;
-  }
+  };
 
   private beforeFetchRequestAsync = async (url, request) => {
     // need to get accessToken each time
     const accessToken = this.loginComponent.nativeElement.authorization_credentials.accessToken;
     if (accessToken) {
       request.headers['Authorization'] = 'Bearer ' + accessToken;
-      return { regionalDomain: this.REGIONAL_DOMAIN } // update this if you want CA, EU, dev
+      return { regionalDomain: this.HOST_NAME }; // update this if you want CA, EU, dev
     }
     else {
       throw new Error('Access Token undefined.');
@@ -141,7 +140,7 @@ export class AppComponent implements AfterViewInit {
     if (repo.repoId && repo.repoName) {
       return { repoId: repo.repoId, repoName: repo.repoName };
     }
-    throw new Error('Current repoId undefined.')
+    throw new Error('Current repoId undefined.');
   };
 
   async ensureRepoClientInitializedAsync(): Promise<void> {
@@ -158,18 +157,18 @@ export class AppComponent implements AfterViewInit {
         this.repoClient._repoId = undefined;
         this.repoClient._repoName = undefined;
         // TODO is there anything else to clear?
-      }
+      };
       this.repoClient = {
         clearCurrentRepo,
         _repoId: undefined,
         _repoName: undefined,
         getCurrentRepoId: async () => {
           if (this.repoClient._repoId) {
-            console.log('getting id from cache')
-            return this.repoClient._repoId
+            console.log('getting id from cache');
+            return this.repoClient._repoId;
           }
           else {
-            console.log('getting id from api')
+            console.log('getting id from api');
             const repo = (await this.getCurrentRepo()).repoId;
             this.repoClient._repoId = repo;
             return repo;
@@ -186,7 +185,7 @@ export class AppComponent implements AfterViewInit {
           }
         },
         ...partialRepoClient
-      }
+      };
     }
   }
 
@@ -197,7 +196,7 @@ export class AppComponent implements AfterViewInit {
 
   async initializeTreeAsync() {
     this.ref.detectChanges();
-    let defaultNode = {
+    const defaultNode = {
       id: '168158',
       isContainer: true,
       isLeaf: false,
@@ -221,7 +220,7 @@ export class AppComponent implements AfterViewInit {
             isLeaf: focusedNodeEntry.isLeaf,
             path: this.lfSelectedFolder.selectedFolderPath,
             name: focusedNodeEntry.id == 1 ? repoName: focusedNodeEntry.name,
-          }
+          };
         }
     }
     else {
@@ -232,12 +231,12 @@ export class AppComponent implements AfterViewInit {
 
   isNodeSelectable = (node: LfRepoTreeNode) => {
     if (node.entryType == EntryType.Folder) {
-      return true
+      return true;
     }
     else {
-      return false
+      return false;
     }
-  }
+  };
 
   get isLoggedIn(): boolean {
     return this.loginComponent?.nativeElement?.state === LoginState.LoggedIn;
@@ -257,7 +256,7 @@ export class AppComponent implements AfterViewInit {
       selectedNodeUrl: getEntryWebAccessUrl(entryId.toString(), repoId, waUrl, selectedNode.isContainer),
       selectedFolderName: this.getFolderNameText(entryId, selectedFolderPath),
       selectedFolderPath: selectedFolderPath
-    }
+    };
   }
 
   get shouldShowSelect(): boolean {
@@ -377,9 +376,8 @@ export class AppComponent implements AfterViewInit {
           repoId,
           fullPath: this.lfSelectedFolder.selectedFolderPath
         });
-        let currentSelectedEntry = currentSelectedByPathResponse.entry;
-        let parentEntryId = currentSelectedEntry.id;
-        console.log(repoId, parentEntryId, this.fileName, entryRequest)
+        const currentSelectedEntry = currentSelectedByPathResponse.entry;
+        const parentEntryId = currentSelectedEntry.id;
         await this.repoClient.entriesClient.importDocument({
           repoId,
           parentEntryId,
@@ -388,12 +386,11 @@ export class AppComponent implements AfterViewInit {
           electronicDocument: edocBlob,
           request: entryRequest
         });
-        window.alert('Successfully saved document to Laserfiche')
+        window.alert('Successfully saved document to Laserfiche');
       }
       catch (err: any) {
         console.error(err);
-        window.alert(`${this.localizationService.getString('ERROR_SAVING')}: ${err.message}`)
-
+        window.alert(`${this.localizationService.getString('ERROR_SAVING')}: ${err.message}`);
       }
     }
     else {
@@ -406,7 +403,7 @@ export class AppComponent implements AfterViewInit {
     const fieldValues = this.lfFieldContainerElement?.nativeElement.getFieldValues() ?? {};
     const templateName = this.lfFieldContainerElement?.nativeElement?.getTemplateValue()?.name ?? '';
 
-    let formattedFieldValues: {
+    const formattedFieldValues: {
       [key: string]: FieldToUpdate;
     } | undefined = {};
 
