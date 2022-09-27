@@ -1,5 +1,5 @@
 import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, ViewChild } from '@angular/core';
-import { PostEntryWithEdocMetadataRequest, FileParameter, RepositoryApiClient, IRepositoryApiClient, PutFieldValsRequest, FieldToUpdate, ValueToUpdate, EntryType } from '@laserfiche/lf-repository-api-client';
+import { PostEntryWithEdocMetadataRequest, FileParameter, RepositoryApiClient, IRepositoryApiClient, PutFieldValsRequest, FieldToUpdate, ValueToUpdate, EntryType, Shortcut, Entry } from '@laserfiche/lf-repository-api-client';
 import { LfFieldsService, LfRepoTreeNodeService, IRepositoryApiClientEx, LfRepoTreeNode } from '@laserfiche/lf-ui-components-services';
 import { LfLocalizationService, PathUtils } from '@laserfiche/lf-js-utils';
 import { LfFieldContainerComponent, LfLoginComponent, LfRepositoryBrowserComponent, LfTreeNode, LoginState } from '@laserfiche/types-lf-ui-components';
@@ -76,10 +76,12 @@ export class AppComponent implements AfterViewInit {
   // Angular hook, after view is initiated
   async ngAfterViewInit(): Promise<void> {
     await this.getAndInitializeRepositoryClientAndServicesAsync();
+    await this.initializeFieldContainerAsync();
   }
 
   async onLoginCompletedAsync() {
     await this.getAndInitializeRepositoryClientAndServicesAsync();
+    await this.initializeFieldContainerAsync();
   }
 
   onLogoutCompleted() {
@@ -99,7 +101,6 @@ export class AppComponent implements AfterViewInit {
 
       // create the fields service to let the field component interact with Laserfiche
       this.lfFieldsService = new LfFieldsService(this.repoClient);
-      await this.initializeFieldContainerAsync();
     }
     else {
       // user is not logged in
@@ -196,41 +197,39 @@ export class AppComponent implements AfterViewInit {
 
   async initializeTreeAsync() {
     this.ref.detectChanges();
-    const defaultNode = {
-      id: '168158',
-      isContainer: true,
-      isLeaf: false,
-      path: '\\Ke\\test\\new folder test',
-      name: 'new folder test',
-      icon: ''
-    };
     let focusedNode;
     if (this.lfSelectedFolder) {
       const repoId = await this.repoClient.getCurrentRepoId();
       const focusNodeByPath = await this.repoClient.entriesClient.getEntryByPath({
-          repoId: repoId,
-          fullPath: this.lfSelectedFolder.selectedFolderPath
-        });
-        const repoName = await this.repoClient.getCurrentRepoName();
-        const focusedNodeEntry = focusNodeByPath?.entry;
-        if (focusedNodeEntry) {
-          focusedNode = {
-            id: focusedNodeEntry.id.toString(),
-            isContainer: focusedNodeEntry.isContainer,
-            isLeaf: focusedNodeEntry.isLeaf,
-            path: this.lfSelectedFolder.selectedFolderPath,
-            name: focusedNodeEntry.id == 1 ? repoName: focusedNodeEntry.name,
-          };
+        repoId: repoId,
+        fullPath: this.lfSelectedFolder.selectedFolderPath
+      });
+      const repoName = await this.repoClient.getCurrentRepoName();
+      const focusedNodeEntry = focusNodeByPath?.entry;
+      if (focusedNodeEntry) {
+        focusedNode = {
+          id: this.getIdOrTargetId(focusedNodeEntry).toString(),
+          isContainer: focusedNodeEntry.isContainer,
+          isLeaf: focusedNodeEntry.isLeaf,
+          path: this.lfSelectedFolder.selectedFolderPath,
+          name: focusedNodeEntry.id == 1 ? repoName : focusedNodeEntry.name,
+        };
+        if (focusedNodeEntry.entryType == EntryType.Shortcut) {
+          if ((focusedNodeEntry as Shortcut).targetType == EntryType.Folder) {
+            focusedNode.isContainer = true;
+            focusedNode.isLeaf = false;
+          }
         }
+      }
     }
-    else {
-      focusedNode = defaultNode;
-    }
-    await this.lfRepositoryBrowser?.nativeElement.initAsync(this.lfRepoTreeNodeService, focusedNode);
+    await this.lfRepositoryBrowser?.nativeElement.initAsync(this.lfRepoTreeNodeService, focusedNode as LfRepoTreeNode);
   }
 
   isNodeSelectable = (node: LfRepoTreeNode) => {
     if (node.entryType == EntryType.Folder) {
+      return true;
+    }
+    else if (node.entryType == EntryType.Shortcut && node.targetType == EntryType.Folder) {
       return true;
     }
     else {
@@ -270,7 +269,7 @@ export class AppComponent implements AfterViewInit {
   onEntrySelected(event) {
     const customEvent = event as CustomEvent<LfTreeNode[]>;
     const treeNodesSelected: LfTreeNode[] = customEvent.detail;
-    this.entrySelected = treeNodesSelected?.length>0 ? treeNodesSelected[0] : undefined;
+    this.entrySelected = treeNodesSelected?.length > 0 ? treeNodesSelected[0] : undefined;
   }
 
   async onOpenNode() {
@@ -281,11 +280,6 @@ export class AppComponent implements AfterViewInit {
   async onClickBrowse() {
     this.expandFolderBrowser = true;
     await this.initializeTreeAsync();
-  }
-
-  private getFolderPathTooltip(path: string): string {
-    const FOLDER_BROWSER_PLACEHOLDER = this.localizationService.getString('FOLDER_BROWSER_PLACEHOLDER');
-    return path ? PathUtils.createDisplayPath(path) : FOLDER_BROWSER_PLACEHOLDER;
   }
 
   get selectedFolderDisplayName(): string {
@@ -377,7 +371,7 @@ export class AppComponent implements AfterViewInit {
           fullPath: this.lfSelectedFolder.selectedFolderPath
         });
         const currentSelectedEntry = currentSelectedByPathResponse.entry;
-        const parentEntryId = currentSelectedEntry.id;
+        const parentEntryId = this.getIdOrTargetId(currentSelectedEntry);
         await this.repoClient.entriesClient.importDocument({
           repoId,
           parentEntryId,
@@ -398,6 +392,15 @@ export class AppComponent implements AfterViewInit {
       window.alert('One or more fields is invalid. Please fix and try again');
     }
   }
+
+  private getIdOrTargetId(node: Entry): number {
+    if (node.entryType == EntryType.Shortcut) {
+      const shortcut = node as Shortcut;
+      return shortcut.targetId;
+    }
+    return node.id;
+  }
+
 
   private async createMetadataRequestAsync(): Promise<PostEntryWithEdocMetadataRequest> {
     const fieldValues = this.lfFieldContainerElement?.nativeElement.getFieldValues() ?? {};
