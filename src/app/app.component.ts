@@ -197,7 +197,7 @@ export class AppComponent implements AfterViewInit {
 
   async initializeTreeAsync() {
     this.ref.detectChanges();
-    let focusedNode;
+    let focusedNode: LfRepoTreeNode | undefined;
     if (this.lfSelectedFolder) {
       const repoId = await this.repoClient.getCurrentRepoId();
       const focusNodeByPath = await this.repoClient.entriesClient.getEntryByPath({
