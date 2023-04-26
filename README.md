@@ -27,6 +27,7 @@ We welcome contributions and feedback. Please follow our [contributing guideline
 
 ## First Time Setup
 
+0. Clone the repository
 1. Create a new Single Page App in [devconsole](https://app.laserfiche.com/devconsole/apps) and add the authentication redirect URI (e.g.: <https://myapp.example.com/lf-sample-app/>) which is also the root page of this app.
    - Select required scope(s) needed to read and write to the repository in the 'Authentication' tab ("repository.Read" and "repository.Write" ). Scopes are case-sensitive and space-delimited. 
 2. Open folder (containing package.json) with Visual Studio Code
