@@ -45,3 +45,9 @@ svg#close {
   display: flex;
   justify-content: flex-end;
 }
+
+.lfToolBar {
+  position:relative;
+  right: 0;
+}
+

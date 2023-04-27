@@ -2,7 +2,7 @@ import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, ViewChild } fr
 import { PostEntryWithEdocMetadataRequest, FileParameter, RepositoryApiClient, IRepositoryApiClient, PutFieldValsRequest, FieldToUpdate, ValueToUpdate, EntryType, Shortcut, Entry } from '@laserfiche/lf-repository-api-client';
 import { LfFieldsService, LfRepoTreeNodeService, IRepositoryApiClientEx, LfRepoTreeNode } from '@laserfiche/lf-ui-components-services';
 import { LfLocalizationService, PathUtils } from '@laserfiche/lf-js-utils';
-import { LfFieldContainerComponent, LfLoginComponent, LfRepositoryBrowserComponent, LfTreeNode, LoginState } from '@laserfiche/types-lf-ui-components';
+import { LfFieldContainerComponent, LfLoginComponent, LfRepositoryBrowserComponent, LfTreeNode, LoginState, LfToolbarComponent, ToolbarOption } from '@laserfiche/types-lf-ui-components';
 import { getEntryWebAccessUrl } from './lf-url-utils';
 
 const resources: Map<string, object> = new Map<string, object>([
@@ -37,11 +37,12 @@ interface ILfSelectedFolder {
   styleUrls: ['./app.component.css']
 })
 export class AppComponent implements AfterViewInit {
-  REDIRECT_URI: string = 'REPLACE_WITH_YOUR_REDIRECT_URI'; // i.e http://localhost:3000, https://serverName/lf-sample/index.html
-  CLIENT_ID: string = 'REPLACE_WITH_YOUR_CLIENT_ID';
-  HOST_NAME: string = 'laserfiche.com'; // only update this if you are using a different environment (i.e. a.clouddev.laserfiche.com)
+  REDIRECT_URI: string = 'https://canyonville.laserfiche.com/cdn-sample-spa'; // i.e http://localhost:3000, https://serverName/lf-sample/index.html
+  CLIENT_ID: string = '6bd54321-2737-4a42-985d-abac41375af5';
+  HOST_NAME: string = 'a.clouddev.laserfiche.com'; // only update this if you are using a different environment (e.g. a.clouddev.laserfiche.com)
   SCOPE: string = 'repository.Read repository.Write'; // Scope(s) requested by the app
 
+  toolbarOptions: ToolbarOption[] = [{name: 'refresh', disabled: true}, {name: 'create folder', disabled: false}];
   // repository client that will be used to connect to the LF API
   private repoClient?: IRepositoryApiClientExInternal;
 

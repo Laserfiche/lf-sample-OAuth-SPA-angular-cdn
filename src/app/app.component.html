@@ -35,10 +35,12 @@
     <div *ngIf="expandFolderBrowser" class="lf-folder-browser-sample-container">
       <lf-repository-browser #lfRepositoryBrowser
       multiple="false"
-      style="height: 450px"
+      style="height: 420px"
       [isSelectable]="isNodeSelectable"
       (entrySelected)="onEntrySelected($event)"
+      class = "lfRepositoryBrowser"
     ></lf-repository-browser>
+    <lf-toolbar [dropdown_options]="toolbarOptions" class="lfToolBar"></lf-toolbar>
     <button class="lf-button primary-button"*ngIf="shouldShowOpen" (click)="onOpenNode()">Open</button>
     <button class="lf-button primary-button" *ngIf="shouldShowSelect" (click)="onSelectFolder()">{{SELECT}}</button>
     </div>
