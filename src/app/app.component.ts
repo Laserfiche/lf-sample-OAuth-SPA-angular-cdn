@@ -1,5 +1,5 @@
 import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, ViewChild } from '@angular/core';
-import { PostEntryWithEdocMetadataRequest, FileParameter, RepositoryApiClient, IRepositoryApiClient, PutFieldValsRequest, FieldToUpdate, ValueToUpdate, EntryType, Shortcut, Entry } from '@laserfiche/lf-repository-api-client';
+import { PostEntryWithEdocMetadataRequest, FileParameter, RepositoryApiClient, IRepositoryApiClient, PutFieldValsRequest, FieldToUpdate, ValueToUpdate, EntryType, Shortcut, Entry, PostEntryChildrenRequest, PostEntryChildrenEntryType } from '@laserfiche/lf-repository-api-client';
 import { LfFieldsService, LfRepoTreeNodeService, IRepositoryApiClientEx, LfRepoTreeNode } from '@laserfiche/lf-ui-components-services';
 import { LfLocalizationService, PathUtils } from '@laserfiche/lf-js-utils';
 import { LfFieldContainerComponent, LfLoginComponent, LfRepositoryBrowserComponent, LfTreeNode, LoginState, LfToolbarComponent, ToolbarOption } from '@laserfiche/types-lf-ui-components';
@@ -278,8 +278,45 @@ export class AppComponent implements AfterViewInit {
     }
   }
 
-  makeNewFolder(value: string) {
-    console.log("want to make folder:" + value);
+  async makeNewFolder(folderName: string) {
+    if (folderName) {
+      if (!this.lfRepositoryBrowser?.nativeElement?.currentFolder) {
+        throw new Error('repositoryBrowser has no currently opened folder.');
+      }
+      try {
+        await this.addNewFolderAsync(this.lfRepositoryBrowser?.nativeElement?.currentFolder, folderName);
+        await this.lfRepositoryBrowser?.nativeElement?.refreshAsync();
+      }
+      catch (e: any) {
+        if (e.title) {
+          console.error(e.title);
+        }
+        else {
+          console.error("unknown error in makeNewFolder");
+        }
+      }
+    }
+  }
+
+  async addNewFolderAsync(parentNode: LfTreeNode, folderName: string): Promise<void> {
+    if (!this.repoClient){
+      throw new Error('repoClient is undefined');
+    }
+    const requestParameters: { entryId: number; postEntryChildrenRequest: PostEntryChildrenRequest } = {
+      entryId: parseInt(parentNode.id, 10),
+      postEntryChildrenRequest: new PostEntryChildrenRequest({
+        name: folderName,
+        entryType: PostEntryChildrenEntryType.Folder
+      })
+    };
+    const repoId: string = await this.repoClient.getCurrentRepoId();
+    await this.repoClient?.entriesClient.createOrCopyEntry(
+      {
+        repoId,
+        entryId: requestParameters.entryId,
+        request: requestParameters.postEntryChildrenRequest
+      }
+    );
   }
 
   closeModal() {
