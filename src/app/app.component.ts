@@ -42,7 +42,7 @@ export class AppComponent implements AfterViewInit {
   HOST_NAME: string = 'a.clouddev.laserfiche.com'; // only update this if you are using a different environment (e.g. a.clouddev.laserfiche.com)
   SCOPE: string = 'repository.Read repository.Write'; // Scope(s) requested by the app
 
-  toolbarOptions: ToolbarOption[] = [{name: 'refresh', disabled: false}, {name: 'create folder', disabled: false}];
+  toolbarOptions: ToolbarOption[] = [{name: 'Refresh', disabled: false}, {name: 'New Folder', disabled: false}];
   // repository client that will be used to connect to the LF API
   private repoClient?: IRepositoryApiClientExInternal;
 
