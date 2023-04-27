@@ -278,10 +278,8 @@ export class AppComponent implements AfterViewInit {
     }
   }
 
-  makeNewFolder(event) {
-    const customEvent = event as CustomEvent<string>;
-    const folderName: string = customEvent.detail;
-    console.log("want to make folder:" + folderName);
+  makeNewFolder(value: string) {
+    console.log("want to make folder:" + value);
   }
 
   closeModal() {
