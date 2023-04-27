@@ -42,7 +42,11 @@ export class AppComponent implements AfterViewInit {
   HOST_NAME: string = 'a.clouddev.laserfiche.com'; // only update this if you are using a different environment (e.g. a.clouddev.laserfiche.com)
   SCOPE: string = 'repository.Read repository.Write'; // Scope(s) requested by the app
 
+
+  // temporary robbie values for development
   toolbarOptions: ToolbarOption[] = [{name: 'Refresh', disabled: false}, {name: 'New Folder', disabled: false}];
+  shouldShowModal: boolean = false;
+
   // repository client that will be used to connect to the LF API
   private repoClient?: IRepositoryApiClientExInternal;
 
@@ -265,10 +269,23 @@ export class AppComponent implements AfterViewInit {
   async onToolbarOptionSelected(event) {
     const customEvent = event as CustomEvent<ToolbarOption>;
     const optionSelected: ToolbarOption = customEvent.detail;
-    if (optionSelected.name == 'refresh') {
+    if (optionSelected.name == 'Refresh') {
       await this.lfRepositoryBrowser?.nativeElement.refreshAsync();
       console.log('refresh');
     }
+    if (optionSelected.name == 'New Folder') {
+      this.shouldShowModal = true;
+    }
+  }
+
+  makeNewFolder(event) {
+    const customEvent = event as CustomEvent<string>;
+    const folderName: string = customEvent.detail;
+    console.log("want to make folder:" + folderName);
+  }
+
+  closeModal() {
+    this.shouldShowModal = false;
   }
 
   async onOpenNode() {
