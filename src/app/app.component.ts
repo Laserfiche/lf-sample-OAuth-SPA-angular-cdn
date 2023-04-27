@@ -42,7 +42,7 @@ export class AppComponent implements AfterViewInit {
   HOST_NAME: string = 'a.clouddev.laserfiche.com'; // only update this if you are using a different environment (e.g. a.clouddev.laserfiche.com)
   SCOPE: string = 'repository.Read repository.Write'; // Scope(s) requested by the app
 
-  toolbarOptions: ToolbarOption[] = [{name: 'refresh', disabled: true}, {name: 'create folder', disabled: false}];
+  toolbarOptions: ToolbarOption[] = [{name: 'refresh', disabled: false}, {name: 'create folder', disabled: false}];
   // repository client that will be used to connect to the LF API
   private repoClient?: IRepositoryApiClientExInternal;
 
@@ -260,6 +260,15 @@ export class AppComponent implements AfterViewInit {
     const customEvent = event as CustomEvent<LfTreeNode[]>;
     const treeNodesSelected: LfTreeNode[] = customEvent.detail;
     this.entrySelected = treeNodesSelected?.length > 0 ? treeNodesSelected[0] : undefined;
+  }
+
+  async onToolbarOptionSelected(event) {
+    const customEvent = event as CustomEvent<ToolbarOption>;
+    const optionSelected: ToolbarOption = customEvent.detail;
+    if (optionSelected.name == 'refresh') {
+      await this.lfRepositoryBrowser?.nativeElement.refreshAsync();
+      console.log('refresh');
+    }
   }
 
   async onOpenNode() {

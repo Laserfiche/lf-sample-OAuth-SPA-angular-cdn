@@ -46,8 +46,12 @@ svg#close {
   justify-content: flex-end;
 }
 
-.lfToolBar {
-  position:relative;
-  right: 0;
+.lf-folder-browser-sample-container{
+  position: relative;
 }
 
+.lfToolBar {
+  position: absolute;
+  right: 0;
+  top: 0
+}
