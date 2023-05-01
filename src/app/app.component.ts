@@ -2,7 +2,7 @@ import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, ViewChild } fr
 import { PostEntryWithEdocMetadataRequest, FileParameter, RepositoryApiClient, IRepositoryApiClient, PutFieldValsRequest, FieldToUpdate, ValueToUpdate, EntryType, Shortcut, Entry, PostEntryChildrenRequest, PostEntryChildrenEntryType } from '@laserfiche/lf-repository-api-client';
 import { LfFieldsService, LfRepoTreeNodeService, IRepositoryApiClientEx, LfRepoTreeNode } from '@laserfiche/lf-ui-components-services';
 import { LfLocalizationService, PathUtils } from '@laserfiche/lf-js-utils';
-import { LfFieldContainerComponent, LfLoginComponent, LfRepositoryBrowserComponent, LfTreeNode, LoginState, LfToolbarComponent, ToolbarOption } from '@laserfiche/types-lf-ui-components';
+import { LfFieldContainerComponent, ColumnDef, LfLoginComponent, LfRepositoryBrowserComponent, LfTreeNode, LoginState, ToolbarOption } from '@laserfiche/types-lf-ui-components';
 import { getEntryWebAccessUrl } from './lf-url-utils';
 
 const resources: Map<string, object> = new Map<string, object>([
@@ -83,6 +83,36 @@ export class AppComponent implements AfterViewInit {
   async ngAfterViewInit(): Promise<void> {
     await this.getAndInitializeRepositoryClientAndServicesAsync();
     await this.initializeFieldContainerAsync();
+  }
+
+  setFakeColumns() {
+    let columns: ColumnDef[] = [
+      {
+        id: 'name',
+        displayName: 'Name',
+        defaultWidth: 'auto',
+        minWidthPx: 100,
+        resizable: true,
+        sortable: true,
+      },
+      {
+        id: 'creationTime',
+        displayName: 'Creation Time',
+        defaultWidth: 'auto',
+        minWidthPx: 100,
+        resizable: true,
+        sortable: true,
+      },
+      {
+        id: 'creator',
+        displayName: 'Author',
+        defaultWidth: 'auto',
+        minWidthPx: 100,
+        resizable: true,
+        sortable: true,
+      }
+    ];
+    this.lfRepositoryBrowser?.nativeElement.setColumnsToDisplay(columns);
   }
 
   async onLoginCompletedAsync() {
@@ -330,7 +360,9 @@ export class AppComponent implements AfterViewInit {
 
   async onClickBrowse() {
     this.expandFolderBrowser = true;
+    this.lfRepoTreeNodeService.columnIds = ['creationTime', 'lastModifiedTime', 'pageCount', 'templateName', 'creator'];
     await this.initializeTreeAsync();
+    this.setFakeColumns();
   }
 
   get selectedFolderDisplayName(): string {
