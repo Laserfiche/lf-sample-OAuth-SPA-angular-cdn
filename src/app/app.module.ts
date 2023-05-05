@@ -4,15 +4,17 @@ import { BrowserModule } from '@angular/platform-browser';
 
 import { AppComponent } from './app.component';
 import { NewFolderModalComponent } from './new-folder-modal/new-folder-modal.component';
+import { EditColumnsModalComponent } from './edit-columns-modal/edit-columns-modal.component';
 
 @NgModule({
   declarations: [
     AppComponent,
-    NewFolderModalComponent
+    NewFolderModalComponent,
+    EditColumnsModalComponent
   ],
   imports: [
     BrowserModule,
-    FormsModule
+    FormsModule,
   ],
   bootstrap: [AppComponent],
   schemas: [CUSTOM_ELEMENTS_SCHEMA]
