@@ -40,7 +40,7 @@
       (entrySelected)="onEntrySelected($event)"
       class = "lfRepositoryBrowser"
     ></lf-repository-browser>
-    <lf-toolbar [dropdown_options]="toolbarOptions" (optionSelected)="onToolbarOptionSelected($event)" class="lfToolBar"></lf-toolbar>
+    <lf-toolbar [dropdown_options]="toolbarOptions" (optionSelected)="onToolbarOptionSelected($event)" class="lf-toolbar"></lf-toolbar>
     <button class="lf-button primary-button"*ngIf="shouldShowOpen" (click)="onOpenNode()">Open</button>
     <button class="lf-button primary-button" *ngIf="shouldShowSelect" (click)="onSelectFolder()">{{SELECT}}</button>
     </div>
