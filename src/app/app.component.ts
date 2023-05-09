@@ -46,7 +46,6 @@ export class AppComponent implements AfterViewInit {
   SCOPE: string = 'repository.Read repository.Write'; // Scope(s) requested by the app
 
 
-  // temporary robbie values for development
   toolbarOptions: ToolbarOption[] = [
     {
       name: 'Refresh',
@@ -373,12 +372,15 @@ export class AppComponent implements AfterViewInit {
     if (!this.repoClient){
       throw new Error('repoClient is undefined');
     }
-    const requestParameters: { entryId: number; postEntryChildrenRequest: PostEntryChildrenRequest } = {
-      entryId: parseInt(parentNode.id, 10),
-      postEntryChildrenRequest: new PostEntryChildrenRequest({
-        name: folderName,
-        entryType: PostEntryChildrenEntryType.Folder
-      })
+    type RequestParameters = { entryId: number; postEntryChildrenRequest: PostEntryChildrenRequest};
+    const entryId = (parentNode as LfRepoTreeNode).targetId ?? parseInt( parentNode.id, 10);
+    const postEntryChildrenRequest: PostEntryChildrenRequest = new PostEntryChildrenRequest({
+      name: folderName,
+      entryType: PostEntryChildrenEntryType.Folder,
+    });
+    const requestParameters: RequestParameters = {
+      entryId,
+      postEntryChildrenRequest,
     };
     const repoId: string = await this.repoClient.getCurrentRepoId();
     await this.repoClient?.entriesClient.createOrCopyEntry(
