@@ -1,6 +1,6 @@
-import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
-import { LfLocalizationService} from '@laserfiche/lf-js-utils';
-
+import { ChangeDetectorRef, Component, Inject } from '@angular/core';
+import { LfLocalizationService } from '@laserfiche/lf-js-utils';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 
 const resources: Map<string, object> = new Map<string, object>([
   ['en-US', {
@@ -17,6 +17,9 @@ const resources: Map<string, object> = new Map<string, object>([
   }]
 ]);
 
+interface NewFolderDialogData {
+  makeNewFolder:  (folderName: string) => Promise<void>;
+}
 
 @Component({
   selector: 'app-new-folder-modal',
@@ -24,7 +27,7 @@ const resources: Map<string, object> = new Map<string, object>([
   styleUrls: ['./new-folder-modal.component.css']
 })
 
-export class NewFolderModalComponent implements OnInit {
+export class NewFolderModalComponent {
   localizationService: LfLocalizationService = new LfLocalizationService(resources);
 
   NAME = this.localizationService.getString('NAME');
@@ -36,25 +39,24 @@ export class NewFolderModalComponent implements OnInit {
   folderName?: string;
 
 
-  @Output() folderEmitter: EventEmitter<string> = new EventEmitter<string>();
-  @Output() shouldCloseModal: EventEmitter<boolean> = new EventEmitter<boolean>();
+  constructor(
+    public dialogRef: MatDialogRef<NewFolderModalComponent>,
+    @Inject(MAT_DIALOG_DATA) public data: NewFolderDialogData,
+  ) { }
 
+  async closeDialog(folder?: string) {
+    if (!folder){
+      this.dialogRef.close();
+      return;
+    }
 
-  constructor() { }
-
-  ngOnInit(): void {
-  }
-
-  closeDialog(folder?: string) {
-    this.folderEmitter.emit(folder ?? "");
-    this.shouldCloseModal.emit(true);
-  }
-
-  onModalClick(event: MouseEvent)  {
-    const isInsideModal = event.target instanceof Element && event.target.closest('.new-folder-dialog-modal-content');
-
-    if (!isInsideModal) {
-      this.closeDialog();
+    try{
+      await this.data.makeNewFolder(folder ?? "");
+      this.dialogRef.close(folder);
+    }
+    catch (error: any) {
+      console.log(error);
+      this.errorMessage = error.message;
     }
   }
 

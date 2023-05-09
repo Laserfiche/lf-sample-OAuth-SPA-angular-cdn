@@ -5,6 +5,8 @@ import { BrowserModule } from '@angular/platform-browser';
 import { AppComponent } from './app.component';
 import { NewFolderModalComponent } from './new-folder-modal/new-folder-modal.component';
 import { EditColumnsModalComponent } from './edit-columns-modal/edit-columns-modal.component';
+import { MatDialogModule } from '@angular/material/dialog';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
 @NgModule({
   declarations: [
@@ -15,6 +17,8 @@ import { EditColumnsModalComponent } from './edit-columns-modal/edit-columns-mod
   imports: [
     BrowserModule,
     FormsModule,
+    MatDialogModule,
+    BrowserAnimationsModule,
   ],
   bootstrap: [AppComponent],
   schemas: [CUSTOM_ELEMENTS_SCHEMA]

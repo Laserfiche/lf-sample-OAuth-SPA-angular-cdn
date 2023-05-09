@@ -1,9 +1,12 @@
-import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, ViewChild } from '@angular/core';
-import { PostEntryWithEdocMetadataRequest, FileParameter, RepositoryApiClient, IRepositoryApiClient, PutFieldValsRequest, FieldToUpdate, ValueToUpdate, EntryType, Shortcut, Entry, PostEntryChildrenRequest, PostEntryChildrenEntryType } from '@laserfiche/lf-repository-api-client';
+import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, QueryList, ViewChild, ViewChildren } from '@angular/core';
+import { PostEntryWithEdocMetadataRequest, FileParameter, RepositoryApiClient, IRepositoryApiClient, PutFieldValsRequest, FieldToUpdate, ValueToUpdate, EntryType, Shortcut, PostEntryChildrenRequest, PostEntryChildrenEntryType } from '@laserfiche/lf-repository-api-client';
 import { LfFieldsService, LfRepoTreeNodeService, IRepositoryApiClientEx, LfRepoTreeNode } from '@laserfiche/lf-ui-components-services';
 import { LfLocalizationService, PathUtils } from '@laserfiche/lf-js-utils';
 import { LfFieldContainerComponent, ColumnDef, LfLoginComponent, LfRepositoryBrowserComponent, LfTreeNode, LoginState, ToolbarOption } from '@laserfiche/types-lf-ui-components';
 import { getEntryWebAccessUrl } from './lf-url-utils';
+import { MatDialog } from '@angular/material/dialog';
+import { NewFolderModalComponent } from './new-folder-modal/new-folder-modal.component';
+import { EditColumnsModalComponent } from './edit-columns-modal/edit-columns-modal.component';
 
 const resources: Map<string, object> = new Map<string, object>([
   ['en-US', {
@@ -44,9 +47,23 @@ export class AppComponent implements AfterViewInit {
 
 
   // temporary robbie values for development
-  toolbarOptions: ToolbarOption[] = [{name: 'Refresh', disabled: false}, {name: 'New Folder', disabled: false}, {name: 'Add/Remove Columns', disabled: false}];
-  shouldShowNewFolderModal: boolean = false;
-  shouldShowEditColumnsModal: boolean = false;
+  toolbarOptions: ToolbarOption[] = [
+    {
+      name: 'Refresh',
+      disabled: false,
+      tag: {handler: async () => {await this.lfRepositoryBrowser?.nativeElement.refreshAsync();}}
+    },
+    {
+      name: 'New Folder',
+      disabled: false,
+      tag: {handler: () => {this.openNewFolderDialog();} },
+    },
+    {
+      name: 'Add/Remove Columns',
+      disabled: false,
+      tag: {handler: () => {this.openEditColumnsDialog();}},
+    }
+  ];
   allPossibleColumns: ColumnDef[] = [
     {
       id: 'creationTime',
@@ -106,7 +123,7 @@ export class AppComponent implements AfterViewInit {
   @ViewChild('fileInput') fileInput: ElementRef<HTMLInputElement>;
 
   // the UI components
-  @ViewChild('lfFieldContainerElement') lfFieldContainerElement?: ElementRef<LfFieldContainerComponent>;
+  @ViewChild('lfFieldContainerElement') public lfFieldContainerElement: ElementRef<LfFieldContainerComponent>;
   @ViewChild('loginComponent') loginComponent?: ElementRef<LfLoginComponent>;
   @ViewChild('lfRepositoryBrowser') lfRepositoryBrowser?: ElementRef<LfRepositoryBrowserComponent>;
 
@@ -126,7 +143,8 @@ export class AppComponent implements AfterViewInit {
   entrySelected: LfTreeNode;
 
   constructor(
-    private ref: ChangeDetectorRef
+    private ref: ChangeDetectorRef,
+    public dialog: MatDialog,
   ) { }
 
   // Angular hook, after view is initiated
@@ -226,11 +244,9 @@ export class AppComponent implements AfterViewInit {
         _repoName: undefined,
         getCurrentRepoId: async () => {
           if (this.repoClient._repoId) {
-            console.log('getting id from cache');
             return this.repoClient._repoId;
           }
           else {
-            console.log('getting id from api');
             const repo = (await this.getCurrentRepo()).repoId;
             this.repoClient._repoId = repo;
             return repo;
@@ -271,7 +287,7 @@ export class AppComponent implements AfterViewInit {
         focusedNode = this.lfRepoTreeNodeService.createLfRepoTreeNode(focusedNodeEntry, repoName);
       }
     }
-    await this.lfRepositoryBrowser?.nativeElement.initAsync(this.lfRepoTreeNodeService, focusedNode as LfRepoTreeNode);
+    await this.lfRepositoryBrowser?.nativeElement.initAsync(this.lfRepoTreeNodeService, focusedNode);
   }
 
   isNodeSelectable = (node: LfRepoTreeNode) => {
@@ -324,16 +340,19 @@ export class AppComponent implements AfterViewInit {
   async onToolbarOptionSelected(event) {
     const customEvent = event as CustomEvent<ToolbarOption>;
     const optionSelected: ToolbarOption = customEvent.detail;
-    if (optionSelected.name == 'Refresh') {
-      await this.lfRepositoryBrowser?.nativeElement.refreshAsync();
-      console.log('refresh');
-    }
-    else if (optionSelected.name == 'New Folder') {
-      this.shouldShowNewFolderModal = true;
-    }
-    else if (optionSelected.name == 'Add/Remove Columns') {
-      this.shouldShowEditColumnsModal = true;
-    }
+    await optionSelected.tag.handler();
+  }
+
+  openNewFolderDialog(): void {
+    this.dialog.open(NewFolderModalComponent, {
+      data: {makeNewFolder: this.makeNewFolder.bind(this) },
+    });
+  }
+
+  openEditColumnsDialog(): void {
+    this.dialog.open(EditColumnsModalComponent, {
+      data: { columnsSelected: this.selectedColumns, allColumnOptions: this.allPossibleColumns, updateColumns: this.updateColumns.bind(this),},
+    });
   }
 
   async makeNewFolder(folderName: string) {
@@ -341,19 +360,13 @@ export class AppComponent implements AfterViewInit {
       if (!this.lfRepositoryBrowser?.nativeElement?.currentFolder) {
         throw new Error('repositoryBrowser has no currently opened folder.');
       }
-      try {
-        await this.addNewFolderAsync(this.lfRepositoryBrowser?.nativeElement?.currentFolder, folderName);
-        await this.lfRepositoryBrowser?.nativeElement?.refreshAsync();
-      }
-      catch (e: any) {
-        if (e.title) {
-          console.error(e.title);
-        }
-        else {
-          console.error("unknown error in makeNewFolder");
-        }
-      }
+      await this.addNewFolderAsync(this.lfRepositoryBrowser?.nativeElement?.currentFolder, folderName);
+      await this.lfRepositoryBrowser?.nativeElement?.refreshAsync();
     }
+    else {
+      throw new Error("didn't receive a folder name.");
+    }
+
   }
 
   async addNewFolderAsync(parentNode: LfTreeNode, folderName: string): Promise<void> {
@@ -377,12 +390,9 @@ export class AppComponent implements AfterViewInit {
     );
   }
 
-  closeNewFolderModal() {
-    this.shouldShowNewFolderModal = false;
-  }
-
-  closeEditColumnsModal() {
-    this.shouldShowEditColumnsModal = false;
+  updateColumns(columns: ColumnDef[]) {
+    this.selectedColumns = columns;
+    this.setColumns(columns);
   }
 
   async onOpenNode() {
