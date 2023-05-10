@@ -10,16 +10,18 @@ import { EditColumnsModalComponent } from './edit-columns-modal/edit-columns-mod
 
 const resources: Map<string, object> = new Map<string, object>([
   ['en-US', {
-    'FOLDER_BROWSER_PLACEHOLDER': 'No folder selected',
-    'SAVE_TO_LASERFICHE': 'Save to Laserfiche',
-    'CLICK_TO_UPLOAD': 'Click to upload file',
-    'SELECTED_FOLDER': 'Selected Folder: ',
-    'FILE_NAME': 'File Name: ',
-    'BROWSE': 'Browse',
-    'OPEN_IN_LASERFICHE': 'Open in Laserfiche',
-    'SELECT': 'Select',
-    'CANCEL': 'Cancel',
-    'ERROR_SAVING': 'Error Saving'
+    FOLDER_BROWSER_PLACEHOLDER: 'No folder selected',
+    SAVE_TO_LASERFICHE: 'Save to Laserfiche',
+    CLICK_TO_UPLOAD: 'Click to upload file',
+    SELECTED_FOLDER: 'Selected Folder: ',
+    FILE_NAME: 'File Name: ',
+    BROWSE: 'Browse',
+    OPEN_IN_LASERFICHE: 'Open in Laserfiche',
+    SELECT: 'Select',
+    CANCEL: 'Cancel',
+    ERROR_SAVING: 'Error Saving',
+    PLEASE_PROVIDE_FOLDER_NAME: 'Please provide a folder name.',
+    NO_CURRENTLY_OPENED_FOLDER: 'There is no currently opened folder.',
   }]
 ]);
 
@@ -206,7 +208,13 @@ export class AppComponent implements AfterViewInit {
     const accessToken = this.loginComponent.nativeElement.authorization_credentials.accessToken;
     if (accessToken) {
       request.headers['Authorization'] = 'Bearer ' + accessToken;
-      return { regionalDomain: this.loginComponent.nativeElement.account_endpoints.regionalDomain };
+      let regionalDomain: string =
+        this.loginComponent.nativeElement.account_endpoints.regionalDomain;
+      if (!regionalDomain) {
+        console.log('could not get regionalDomain from loginComponent');
+        regionalDomain = this.HOST_NAME;
+      }
+      return { regionalDomain };
     }
     else {
       throw new Error('Access Token undefined.');
@@ -357,13 +365,17 @@ export class AppComponent implements AfterViewInit {
   async makeNewFolder(folderName: string) {
     if (folderName) {
       if (!this.lfRepositoryBrowser?.nativeElement?.currentFolder) {
-        throw new Error('repositoryBrowser has no currently opened folder.');
+        throw new Error(
+          this.localizationService.getString('NO_CURRENTLY_OPENED_FOLDER')
+        );
       }
       await this.addNewFolderAsync(this.lfRepositoryBrowser?.nativeElement?.currentFolder, folderName);
       await this.lfRepositoryBrowser?.nativeElement?.refreshAsync();
     }
     else {
-      throw new Error("didn't receive a folder name.");
+      throw new Error(
+        this.localizationService.getString('PLEASE_PROVIDE_FOLDER_NAME')
+      );
     }
 
   }
