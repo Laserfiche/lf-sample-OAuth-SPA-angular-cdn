@@ -3,6 +3,6 @@ const config = {
     CLIENT_ID: 'REPLACE_WITH_YOUR_CLIENT_ID',
     HOST_NAME: 'laserfiche.com', // only update this if you are using a different environment (e.g. a.clouddev.laserfiche.com)
     SCOPE: 'repository.Read repository.Write', // Scope(s) requested by the app
-}
+};
 
 export default config;
