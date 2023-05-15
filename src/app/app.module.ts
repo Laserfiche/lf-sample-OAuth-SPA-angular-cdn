@@ -1,6 +1,5 @@
 import { CUSTOM_ELEMENTS_SCHEMA, NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { BrowserModule } from '@angular/platform-browser';
 
 import { AppComponent } from './app.component';
 import { NewFolderModalComponent } from './new-folder-modal/new-folder-modal.component';
@@ -15,7 +14,6 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
     EditColumnsModalComponent
   ],
   imports: [
-    BrowserModule,
     FormsModule,
     MatDialogModule,
     BrowserAnimationsModule,
