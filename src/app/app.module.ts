@@ -11,14 +11,10 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
   declarations: [
     AppComponent,
     NewFolderModalComponent,
-    EditColumnsModalComponent
+    EditColumnsModalComponent,
   ],
-  imports: [
-    FormsModule,
-    MatDialogModule,
-    BrowserAnimationsModule,
-  ],
+  imports: [FormsModule, MatDialogModule, BrowserAnimationsModule],
   bootstrap: [AppComponent],
-  schemas: [CUSTOM_ELEMENTS_SCHEMA]
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
-export class AppModule { }
+export class AppModule {}
