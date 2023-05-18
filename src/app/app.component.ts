@@ -40,7 +40,7 @@ import { getEntryWebAccessUrl } from './lf-url-utils';
 import { MatDialog } from '@angular/material/dialog';
 import { NewFolderModalComponent } from './new-folder-modal/new-folder-modal.component';
 import { EditColumnsModalComponent } from './edit-columns-modal/edit-columns-modal.component';
-import config from './config';
+import config from '../config';
 
 const resources: Map<string, object> = new Map<string, object>([
   [
