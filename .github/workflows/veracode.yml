@@ -1,4 +1,4 @@
-name: lf-sample-OAuth-SPA-angular-cdn-CI
+name: Veracode lf-sample-OAuth-SPA-angular-cdn-CI
 
 on:
   # Allows you to run this workflow manually from the Actions tab
@@ -42,7 +42,6 @@ jobs:
           filepath: 'veracode'
           vid: '${{ secrets.VERACODE_API_ID }}'
           vkey: '${{ secrets.VERACODE_API_KEY }}'
-          teams: 'Application Component - Shared'
 
       - name: Run Veracode Doftware Composition Analysis (SCA)
         env:
