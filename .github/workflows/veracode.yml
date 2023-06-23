@@ -41,8 +41,7 @@ jobs:
           createprofile: true
           filepath: 'veracode'
           vid: '${{ secrets.VERACODE_API_ID }}'
-          vkey: '${{ secrets.VERACODE_API_KEY }}'
-          teams: 'Application Component - Shared'
+          vkey: '${{ secrets.VERACODE_API_KEY }}'\
 
       - name: Run Veracode Doftware Composition Analysis (SCA)
         env:
