@@ -305,11 +305,12 @@ export class AppComponent implements AfterViewInit {
 
   async initializeTreeAsync() {
     this.ref.detectChanges();
-    if (this.lfRepoTreeNodeService)
-    await this.lfRepositoryBrowser?.nativeElement.initAsync(
-      this.lfRepoTreeNodeService,
-      this.lfSelectedFolder?.selectedFolderPath
-    );
+    if (this.lfRepoTreeNodeService) {
+      await this.lfRepositoryBrowser?.nativeElement.initAsync(
+        this.lfRepoTreeNodeService,
+        this.lfSelectedFolder?.selectedFolderPath
+      );
+    }
   }
 
   isNodeSelectable = (node: LfRepoTreeNode) => {
