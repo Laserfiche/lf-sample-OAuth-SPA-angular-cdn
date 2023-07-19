@@ -3,9 +3,7 @@ import {
   ChangeDetectorRef,
   Component,
   ElementRef,
-  QueryList,
   ViewChild,
-  ViewChildren,
 } from '@angular/core';
 import {
   PostEntryWithEdocMetadataRequest,
@@ -68,7 +66,7 @@ interface IRepositoryApiClientExInternal extends IRepositoryApiClientEx {
   _repoName?: string;
 }
 interface ILfSelectedFolder {
-  selectedNodeUrl: string | undefined; // url to open the selected node in Web Client
+  selectedNodeUrl: string; // url to open the selected node in Web Client
   selectedFolderPath: string; // path of selected folder
   selectedFolderName: string; // name of the selected folder
 }
@@ -218,20 +216,22 @@ export class AppComponent implements AfterViewInit {
       this.loginComponent?.nativeElement?.authorization_credentials
         ?.accessToken;
     if (accessToken) {
-      await this.ensureRepoClientInitializedAsync();
-
-      // create the tree service to interact with the LF Api
+      if (!this.repoClient) {
+        this.repoClient = await this.tryInitRepoClientAsync();
+      }
       if (this.repoClient){
+        // create the tree service to interact with the LF Api
         this.lfRepoTreeNodeService = new LfRepoTreeNodeService(this.repoClient);
         // by default all entries are viewable
         this.lfRepoTreeNodeService.viewableEntryTypes = [
           EntryType.Folder,
           EntryType.Shortcut,
         ];
+        // create the fields service to let the field component interact with Laserfiche
+        this.lfFieldsService = new LfFieldsService(this.repoClient);
+      } else {
+        // failed to initialize repo client
       }
-
-      // create the fields service to let the field component interact with Laserfiche
-      this.lfFieldsService = this.repoClient ? new LfFieldsService(this.repoClient) : undefined;
     } else {
       // user is not logged in
     }
@@ -245,51 +245,53 @@ export class AppComponent implements AfterViewInit {
     if (repo?.repoId && repo?.repoName) {
       return { repoId: repo.repoId, repoName: repo.repoName };
     }
-    throw new Error('Current repoId undefined.');
+    throw new Error('Current repo id or name undefined.');
   };
 
-  async ensureRepoClientInitializedAsync(): Promise<void> {
-    if (!this.repoClient) {
-      const partialRepoClient: IRepositoryApiClient | undefined = this.loginComponent ?
-        RepositoryApiClient.createFromHttpRequestHandler(this.loginComponent.nativeElement.authorizationRequestHandler): undefined;
-
-      const clearCurrentRepo = () => {
-        if (this.repoClient){
-          this.repoClient._repoId = undefined;
-          this.repoClient._repoName = undefined;
-        }
-        // TODO is there anything else to clear?
-      };
-      if (partialRepoClient) {
-        this.repoClient = {
-          clearCurrentRepo,
-          _repoId: undefined,
-          _repoName: undefined,
-          getCurrentRepoId:async () => {
-            if (this.repoClient?._repoId) {
-              return this.repoClient._repoId;
-            } else {
-              const repo = (await this.getCurrentRepo()).repoId;
-              if (this.repoClient) {
-                this.repoClient._repoId = repo;
-              }
-              return repo;
-            }
-          },
-          getCurrentRepoName: async () => {
-            if (this.repoClient?._repoName) {
-              return this.repoClient._repoName;
-            } else {
-              const repo = (await this.getCurrentRepo()).repoName;
-              if (this.repoClient) {
-                this.repoClient._repoName = repo;
-              }
-              return repo;
-            }
-          },
-          ...partialRepoClient
-        }
+  async tryInitRepoClientAsync(): Promise<IRepositoryApiClientExInternal | undefined> {
+    if (this.loginComponent) {
+      const repoClient = await this.makeRepoClientFromLoginComponent(this.loginComponent.nativeElement);
+      return repoClient;
+    } else {
+      console.log("failed to initialize repo client from login component");
+      return undefined;
+    }
+  }
+  private async makeRepoClientFromLoginComponent(loginComponent: LfLoginComponent): Promise<IRepositoryApiClientExInternal> {
+    const partialRepoClient: IRepositoryApiClient = RepositoryApiClient.createFromHttpRequestHandler(loginComponent.authorizationRequestHandler);
+    const clearCurrentRepo = () => {
+      if (this.repoClient){
+        this.repoClient._repoId = undefined;
+        this.repoClient._repoName = undefined;
       }
+    };
+    return {
+      clearCurrentRepo,
+      _repoId: undefined,
+      _repoName: undefined,
+      getCurrentRepoId:async () => {
+        if (this.repoClient?._repoId) {
+          return this.repoClient._repoId;
+        } else {
+          const repo = (await this.getCurrentRepo()).repoId;
+          if (this.repoClient) {
+            this.repoClient._repoId = repo;
+          }
+          return repo;
+        }
+      },
+      getCurrentRepoName: async () => {
+        if (this.repoClient?._repoName) {
+          return this.repoClient._repoName;
+        } else {
+          const repo = (await this.getCurrentRepo()).repoName;
+          if (this.repoClient) {
+            this.repoClient._repoName = repo;
+          }
+          return repo;
+        }
+      },
+      ...partialRepoClient
     }
   }
 
@@ -330,29 +332,31 @@ export class AppComponent implements AfterViewInit {
     return this.loginComponent?.nativeElement?.state === LoginState.LoggedIn;
   }
 
-  async onSelectFolder() { // review this code before staging
-    const selectedNode = this.lfRepositoryBrowser?.nativeElement
-      .currentFolder as LfRepoTreeNode;
-    let entryId = Number.parseInt(selectedNode.id, 10);
-    const selectedFolderPath = selectedNode.path;
-    if (selectedNode.entryType == EntryType.Shortcut && selectedNode.targetId) {
-      entryId = selectedNode.targetId;
-    }
-    const repoId = await this.repoClient?.getCurrentRepoId();
-    const waUrl =
-      this.loginComponent?.nativeElement.account_endpoints?.webClientUrl;
-    this.expandFolderBrowser = false;
-    if (repoId && waUrl) {
+  async onSelectFolder() {
+    if (this.lfRepositoryBrowser && this.repoClient && this.loginComponent && this.loginComponent.nativeElement.account_endpoints){
+      const selectedNode = this.lfRepositoryBrowser.nativeElement
+        .currentFolder as LfRepoTreeNode;
+      let entryId = Number.parseInt(selectedNode.id, 10);
+      const selectedFolderPath = selectedNode.path;
+      if (selectedNode.entryType == EntryType.Shortcut && selectedNode.targetId) {
+        entryId = selectedNode.targetId;
+      }
+      const repoId = await this.repoClient.getCurrentRepoId();
+      const waUrl =
+        this.loginComponent.nativeElement.account_endpoints.webClientUrl;
+      this.expandFolderBrowser = false;
       this.lfSelectedFolder = {
         selectedNodeUrl: getEntryWebAccessUrl(
           entryId.toString(),
           repoId,
           waUrl,
           selectedNode.isContainer
-        ),
+        ) ?? '',
         selectedFolderName: this.getFolderNameText(entryId, selectedFolderPath),
         selectedFolderPath: selectedFolderPath,
       };
+    } else {
+      console.error("Could not set lfSelectedFolder: some of {lfRepositoryBrowser, repoClient, loginComponent, account_endpoints} were undefined");
     }
   }
 
@@ -441,7 +445,6 @@ export class AppComponent implements AfterViewInit {
   }
 
   async onOpenNode() {
-    // const nodeToOpen = this.entrySelected;
     await this.lfRepositoryBrowser?.nativeElement?.openSelectedNodesAsync();
   }
 
@@ -501,7 +504,11 @@ export class AppComponent implements AfterViewInit {
 
   // input handler methods
   onInputAreaClick() {
-    this.fileInput?.nativeElement.click();
+    if (this.fileInput){
+      this.fileInput.nativeElement.click();
+    } else {
+      console.error("file input undefined");
+    }
   }
 
   async selectFileAsync() {
@@ -549,47 +556,7 @@ export class AppComponent implements AfterViewInit {
         });
 
       try {
-        if(this.repoClient === undefined) {
-          throw new Error('repoClient was undefined');
-        }
-        const repoId = await this.repoClient?.getCurrentRepoId() ?? '';
-
-
-        if (this.lfSelectedFolder === undefined) {
-          throw new Error('selectedFolder was undefined');
-        }
-        const currentSelectedByPathResponse =
-          await this.repoClient.entriesClient.getEntryByPath({
-            repoId,
-            fullPath: this.lfSelectedFolder.selectedFolderPath,
-          });
-        const currentSelectedEntry = currentSelectedByPathResponse.entry;
-
-
-        if (currentSelectedEntry === undefined) {
-          throw new Error('currentSelectedEntry was undefined');
-        }
-        let parentEntryId = currentSelectedEntry.id;
-        if (currentSelectedEntry.entryType == EntryType.Shortcut) {
-          const shortcut = currentSelectedEntry as Shortcut;
-          parentEntryId = shortcut.targetId;
-        }
-
-        if (parentEntryId === undefined) {
-          throw new Error('parentEntryId was undefined');
-        }
-        if (this.fileName === undefined) {
-          throw new Error('fileName was undefined');
-        }
-        await this.repoClient.entriesClient.importDocument({
-          repoId,
-          parentEntryId,
-          fileName: this.fileName,
-          autoRename: true,
-          electronicDocument: edocBlob,
-          request: entryRequest,
-        });
-        window.alert('Successfully saved document to Laserfiche');
+        await this.trySaveDocument(edocBlob, entryRequest);
       } catch (err: any) {
         console.error(err);
         window.alert(
@@ -602,6 +569,49 @@ export class AppComponent implements AfterViewInit {
       console.warn('metadata invalid');
       window.alert('One or more fields is invalid. Please fix and try again');
     }
+  }
+
+  private async trySaveDocument(edocBlob: FileParameter, entryRequest: PostEntryWithEdocMetadataRequest) {
+    if(this.repoClient === undefined) {
+      throw new Error('repoClient was undefined');
+    }
+    const repoId = await this.repoClient.getCurrentRepoId();
+
+
+    if (this.lfSelectedFolder === undefined) {
+      throw new Error('selectedFolder was undefined');
+    }
+    const currentSelectedByPathResponse =
+      await this.repoClient.entriesClient.getEntryByPath({
+        repoId,
+        fullPath: this.lfSelectedFolder.selectedFolderPath,
+      });
+    const currentSelectedEntry = currentSelectedByPathResponse.entry;
+
+    if (currentSelectedEntry === undefined) {
+      throw new Error('currentSelectedEntry was undefined');
+    }
+    let parentEntryId = currentSelectedEntry.id;
+    if (currentSelectedEntry.entryType == EntryType.Shortcut) {
+      const shortcut = currentSelectedEntry as Shortcut;
+      parentEntryId = shortcut.targetId;
+    }
+
+    if (parentEntryId === undefined) {
+      throw new Error('parentEntryId was undefined');
+    }
+    if (this.fileName === undefined) {
+      throw new Error('fileName was undefined');
+    }
+    await this.repoClient.entriesClient.importDocument({
+      repoId,
+      parentEntryId,
+      fileName: this.fileName,
+      autoRename: true,
+      electronicDocument: edocBlob,
+      request: entryRequest,
+    });
+    window.alert('Successfully saved document to Laserfiche');
   }
 
   private async createMetadataRequestAsync(): Promise<PostEntryWithEdocMetadataRequest> {
