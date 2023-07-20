@@ -283,7 +283,7 @@ export class AppComponent implements AfterViewInit {
         }
       },
       ...partialRepoClient,
-    }
+    };
 
     return repoClient;
   }
