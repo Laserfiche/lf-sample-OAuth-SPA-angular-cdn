@@ -222,32 +222,26 @@ export class AppComponent implements AfterViewInit {
       if (!this.repoClient) {
         this.repoClient = await this.tryInitRepoClientAsync();
       }
-      if (this.repoClient){
-        // create the tree service to interact with the LF Api
-        this.lfRepoTreeNodeService = new LfRepoTreeNodeService(this.repoClient);
-        // by default all entries are viewable
-        this.lfRepoTreeNodeService.viewableEntryTypes = [
-          EntryType.Folder,
-          EntryType.Shortcut,
-        ];
-        // create the fields service to let the field component interact with Laserfiche
-        this.lfFieldsService = new LfFieldsService(this.repoClient);
-      } else {
-        // failed to initialize repo client
-      }
+      // create the tree service to interact with the LF Api
+      this.lfRepoTreeNodeService = new LfRepoTreeNodeService(this.repoClient);
+      // by default all entries are viewable
+      this.lfRepoTreeNodeService.viewableEntryTypes = [
+        EntryType.Folder,
+        EntryType.Shortcut,
+      ];
+      // create the fields service to let the field component interact with Laserfiche
+      this.lfFieldsService = new LfFieldsService(this.repoClient);
     } else {
       // user is not logged in
     }
   }
 
-  async tryInitRepoClientAsync(): Promise<IRepositoryApiClientExInternal | undefined> {
-    if (this.loginComponent) {
-      const repoClient = await this.makeRepoClientFromLoginComponent(this.loginComponent.nativeElement);
-      return repoClient;
-    } else {
-      console.log("failed to initialize repo client from login component");
-      return undefined;
+  async tryInitRepoClientAsync(): Promise<IRepositoryApiClientExInternal> {
+    if (!this.loginComponent) {
+      throw new Error("Login Component is undefined");
     }
+    const repoClient = await this.makeRepoClientFromLoginComponent(this.loginComponent.nativeElement);
+    return repoClient;
   }
   private async makeRepoClientFromLoginComponent(loginComponent: LfLoginComponent): Promise<IRepositoryApiClientExInternal> {
     const partialRepoClient: IRepositoryApiClient = RepositoryApiClient.createFromHttpRequestHandler(loginComponent.authorizationRequestHandler);
