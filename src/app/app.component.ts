@@ -243,6 +243,7 @@ export class AppComponent implements AfterViewInit {
     const repoClient = await this.makeRepoClientFromLoginComponent(this.loginComponent.nativeElement);
     return repoClient;
   }
+
   private async makeRepoClientFromLoginComponent(loginComponent: LfLoginComponent): Promise<IRepositoryApiClientExInternal> {
     const partialRepoClient: IRepositoryApiClient = RepositoryApiClient.createFromHttpRequestHandler(loginComponent.authorizationRequestHandler);
 
