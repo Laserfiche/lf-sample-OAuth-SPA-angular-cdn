@@ -35,7 +35,7 @@ import {
   ToolbarOption,
 } from '@laserfiche/types-lf-ui-components';
 import { getEntryWebAccessUrl } from './lf-url-utils';
-import { MatDialog } from '@angular/material/dialog';
+import { MatLegacyDialog as MatDialog } from '@angular/material/legacy-dialog';
 import { NewFolderModalComponent } from './new-folder-modal/new-folder-modal.component';
 import { EditColumnsModalComponent } from './edit-columns-modal/edit-columns-modal.component';
 import config from '../config';

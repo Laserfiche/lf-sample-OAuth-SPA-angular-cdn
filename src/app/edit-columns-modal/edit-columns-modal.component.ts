@@ -1,7 +1,7 @@
 import { Component, Inject } from '@angular/core';
 import { LfLocalizationService } from '@laserfiche/lf-js-utils';
 import { ColumnDef } from '@laserfiche/types-lf-ui-components';
-import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA, MatLegacyDialogRef as MatDialogRef } from '@angular/material/legacy-dialog';
 
 const resources: Map<string, object> = new Map<string, object>([
   [
