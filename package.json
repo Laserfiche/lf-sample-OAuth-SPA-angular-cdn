@@ -43,7 +43,7 @@
     "@angular-eslint/template-parser": "^16.2.0",
     "@angular/cli": "^16.2.2",
     "@angular/compiler-cli": "^16.2.5",
-    "@laserfiche/types-lf-ui-components": "^16.0.0",
+    "@laserfiche/types-lf-ui-components": "^16.0.0--preview-6203674640",
     "@types/jasmine": "^3.8.0",
     "@types/node": "^16.18.11",
     "@typescript-eslint/eslint-plugin": "5.27.1",
