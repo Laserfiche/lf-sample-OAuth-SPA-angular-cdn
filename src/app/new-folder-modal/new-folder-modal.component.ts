@@ -1,6 +1,6 @@
 import { ChangeDetectorRef, Component, Inject } from '@angular/core';
 import { LfLocalizationService } from '@laserfiche/lf-js-utils';
-import { MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA, MatLegacyDialogRef as MatDialogRef } from '@angular/material/legacy-dialog';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 
 const resources: Map<string, object> = new Map<string, object>([
   [
