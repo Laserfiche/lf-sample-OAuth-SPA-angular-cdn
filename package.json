@@ -29,7 +29,7 @@
     "@angular/router": "^18.2.14",
     "@laserfiche/lf-js-utils": "^4.0.3",
     "@laserfiche/lf-repository-api-client": "^1.1.9",
-    "@laserfiche/lf-ui-components-services": "^18.0.0",
+    "@laserfiche/lf-ui-components-services": "^18.0.1",
     "rxjs": "^7.8.1",
     "tslib": "^2.3.1",
     "zone.js": "^0.14.10"
@@ -43,7 +43,7 @@
     "@angular-eslint/template-parser": "^18.4.3",
     "@angular/cli": "^18.2.21",
     "@angular/compiler-cli": "^18.2.14",
-    "@laserfiche/types-lf-ui-components": "^18.0.1",
+    "@laserfiche/types-lf-ui-components": "^18.0.2",
     "@types/jasmine": "^3.8.0",
     "@types/node": "^18.19.130",
     "@typescript-eslint/eslint-plugin": "5.27.1",
